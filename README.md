@@ -1,1 +1,1 @@
-# stock-rag-mastery
+# rag-stock-mastery
