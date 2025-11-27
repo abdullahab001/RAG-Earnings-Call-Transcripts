@@ -1,73 +1,22 @@
-# Virtual Environment - DON'T COMMIT THIS!
-rag/
-venv/
-.venv/
-ENV/
-env/
-
-# Environment variables
-.env
-
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-build/
-dist/
-*.egg-info/
-*.egg
-
-# Virtual Environments
-# Note: Pipenv stores venv OUTSIDE project, so no venv/ folder to ignore
-.venv/
-venv/
-ENV/
 env/
+rag/
+venv/
 
-# Pipenv
-# IMPORTANT: Do NOT ignore Pipfile and Pipfile.lock - they should be committed!
-# These files are like package.json and package-lock.json in Node.js
-
-# Data files
-data/raw/*
-data/processed/*
-data/embeddings/*
-!data/raw/.gitkeep
-!data/processed/.gitkeep
-!data/embeddings/.gitkeep
-		
-			  
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-.vs/
-
-# OS
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# Vector DB
-.chromadb/
-chroma.sqlite3
+# Environment variables
+.env
 
 # Logs
 *.log
-logs/
 
-# Jupyter (if you add notebooks later)
-.ipynb_checkpoints/
+# ChromaDB persistent storage
+chroma_db/
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
-# requirements.txt (optional - you have Pipfile now)
-# If you want to keep requirements.txt for compatibility, don't ignore it
-# If you only want Pipfile, you can delete requirements.txt
+page_source.html
+page_structure.html
+test.py

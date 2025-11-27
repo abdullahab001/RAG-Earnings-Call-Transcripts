@@ -1,149 +1,72 @@
-# scripts/test_embeddings_chromadb.py
-
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
+import time
 import os
-from dotenv import load_dotenv
-from openai import OpenAI
-import chromadb
 
-load_dotenv()
-
-def test_openai_embeddings_with_chromadb():
-    """Test creating OpenAI embeddings and storing in ChromaDB"""
-    
-    print("🔄 Testing OpenAI Embeddings + ChromaDB Integration...\n")
-    
-    # Initialize OpenAI client
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        print("❌ OPENAI_API_KEY not found")
-        return False
-    
-    openai_client = OpenAI()
-    
-    # Initialize ChromaDB
-    chroma_client = chromadb.PersistentClient(path="./data/embeddings/test_openai")
-    
-    # Create collection
-    collection = chroma_client.get_or_create_collection(
-        name="stock_news_test",
-        metadata={"description": "Test stock news with OpenAI embeddings"}
-    )
-    
-    print("✅ ChromaDB collection created")
-    
-    # Sample stock news
-    news_items = [
-        {
-            "id": "news_1",
-            "text": "Apple reports record Q4 earnings, stock surges 8%",
-            "ticker": "AAPL",
-            "date": "2024-11-20"
-        },
-        {
-            "id": "news_2", 
-            "text": "Microsoft unveils new AI-powered Office features",
-            "ticker": "MSFT",
-            "date": "2024-11-21"
-        },
-        {
-            "id": "news_3",
-            "text": "Tesla stock drops 5% on production concerns",
-            "ticker": "TSLA",
-            "date": "2024-11-22"
-        },
-        {
-            "id": "news_4",
-            "text": "Apple announces new partnership with healthcare providers",
-            "ticker": "AAPL",
-            "date": "2024-11-23"
-        }
-    ]
-    
-    print(f"📰 Processing {len(news_items)} news items...")
-    
-    # Generate embeddings using OpenAI
-    texts = [item['text'] for item in news_items]
+def debug_motley_fool():
+    """
+    Debug script to see what's actually on the page
+    """
+    print("Setting up Chrome driver...")
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     
     try:
-        response = openai_client.embeddings.create(
-            input=texts,
-            model="text-embedding-3-small"
-        )
+        url = "https://www.fool.com/earnings-call-transcripts/"
+        print(f"\nOpening: {url}")
+        driver.get(url)
         
-        embeddings = [item.embedding for item in response.data]
+        print("Waiting for page to load...")
+        time.sleep(5)
         
-        print(f"✅ Generated {len(embeddings)} embeddings")
-        print(f"   Embedding dimension: {len(embeddings[0])}")
-        print(f"   Cost: ~${len(texts) * 0.00002:.6f}")
+        # Save page source to inspect
+        with open('page_source.html', 'w', encoding='utf-8') as f:
+            f.write(driver.page_source)
+        print("✓ Saved page source to page_source.html")
         
-        # Add to ChromaDB
-        collection.add(
-            ids=[item['id'] for item in news_items],
-            embeddings=embeddings,
-            documents=texts,
-            metadatas=[{
-                "ticker": item['ticker'],
-                "date": item['date']
-            } for item in news_items]
-        )
+        # Find ALL links
+        all_links = driver.find_elements(By.TAG_NAME, 'a')
+        print(f"\nTotal links found: {len(all_links)}")
         
-        print(f"✅ Stored {len(news_items)} items in ChromaDB")
+        # Print first 30 links with their text
+        print("\nFirst 30 links:")
+        for i, link in enumerate(all_links[:30], 1):
+            href = link.get_attribute('href')
+            text = link.text.strip()[:60]
+            print(f"{i}. [{text}] -> {href}")
         
-        # Test semantic search
-        print("\n🔍 Testing Semantic Search:\n")
+        # Look for specific patterns
+        print("\n" + "="*60)
+        print("Looking for transcript-like links...")
+        print("="*60)
         
-        queries = [
-            "What happened with Apple?",
-            "Tell me about AI announcements",
-            "Any production issues?"
+        transcript_patterns = [
+            'transcript',
+            'earnings',
+            'q1-', 'q2-', 'q3-', 'q4-',
+            '2024', '2025'
         ]
         
-        for query in queries:
-            # Generate query embedding
-            query_response = openai_client.embeddings.create(
-                input=query,
-                model="text-embedding-3-small"
-            )
-            query_embedding = query_response.data[0].embedding
+        potential_transcripts = []
+        for link in all_links:
+            href = link.get_attribute('href')
+            text = link.text.strip().lower()
             
-            # Search ChromaDB
-            results = collection.query(
-                query_embeddings=[query_embedding],
-                n_results=2,
-                include=["documents", "metadatas", "distances"]
-            )
-            
-            print(f"Query: '{query}'")
-            print(f"Top result: {results['documents'][0][0]}")
-            print(f"  Ticker: {results['metadatas'][0][0]['ticker']}")
-            print(f"  Similarity: {1 - results['distances'][0][0]:.3f}")
-            print()
+            if href:
+                for pattern in transcript_patterns:
+                    if pattern in href.lower() or pattern in text:
+                        if href not in potential_transcripts and '#' not in href:
+                            potential_transcripts.append((text[:60], href))
+                        break
         
-        # Cleanup
-        chroma_client.delete_collection("stock_news_test")
-        print("✅ Test collection deleted (cleanup)")
+        print(f"\nFound {len(potential_transcripts)} potential transcript links:")
+        for i, (text, href) in enumerate(potential_transcripts[:20], 1):
+            print(f"{i}. [{text}] -> {href}")
         
-        return True
-        
-    except Exception as e:
-        print(f"❌ Test failed: {str(e)}")
-        return False
+    finally:
+        print("\nClosing browser...")
+        driver.quit()
 
 if __name__ == "__main__":
-    print("="*60)
-    print("   OPENAI EMBEDDINGS + CHROMADB TEST")
-    print("="*60)
-    
-    success = test_openai_embeddings_with_chromadb()
-    
-    print("\n" + "="*60)
-    if success:
-        print("✅ Full integration working!")
-        print("\nYou've successfully:")
-        print("   • Generated OpenAI embeddings")
-        print("   • Stored them in ChromaDB")
-        print("   • Performed semantic search")
-        print("\n🎉 You're ready to build your RAG system!")
-    else:
-        print("❌ Integration test failed")
-    print("="*60)
+    debug_motley_fool()
