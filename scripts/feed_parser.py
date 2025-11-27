@@ -33,7 +33,7 @@ def scrape_motley_fool_transcripts(num_transcripts=15):
             if href and '/earnings/call-transcripts/' in href and href not in transcript_urls:
                 # Skip the base URL and anchor links
                 if href != url and '#' not in href:
-                    transcript_urls.append(  )
+                    transcript_urls.append(href)
         
         print(f"\nFound {len(transcript_urls)} transcript links")
         print(f"Will fetch first {min(num_transcripts, len(transcript_urls))} transcripts\n")
@@ -103,7 +103,9 @@ def scrape_motley_fool_transcripts(num_transcripts=15):
         print(f"{'='*60}")
         print(f"✓ Successfully saved {count} transcripts to ./transcripts/")
         print(f"{'='*60}")
-        
+
+    except Exception as e:
+        print(f"Error during scraping: {e}") 
     finally:
         print("\nClosing browser...")
         driver.quit()

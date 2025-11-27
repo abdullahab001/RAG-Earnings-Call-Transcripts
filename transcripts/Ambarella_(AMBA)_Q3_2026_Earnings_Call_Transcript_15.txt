@@ -1,6 +1,6 @@
 Title: Ambarella (AMBA) Q3 2026 Earnings Call Transcript
 Source: https://www.fool.com/earnings/call-transcripts/2025/11/25/ambarella-amba-q3-2026-earnings-call-transcript/
-Date: 2025-11-26
+Date: 2025-11-27
 
 Image source: The Motley Fool.
 Date
@@ -30,7 +30,7 @@ Summary
 Ambarella
 (
 AMBA
-+1.56%
+18.77%
 )
 delivered both record quarterly revenue and robust year-over-year growth, driven predominantly by Edge AI product adoption and a higher proportion of advanced system-on-chip shipments. Management increased full-year revenue guidance and reported that Edge AI products constituted the majority of sales for six consecutive quarters. The operating cash flow improvement was reflected in an increased cash balance and reduced working capital days, while the quarter's results demonstrated further operating leverage despite ongoing R&D investment. Customer mix shifted toward high-volume accounts, a factor cited as influencing the gross margin outlook for the remainder of the year.
 President Wang stated, "5-nanometer-based products represent more than 45% of our total Q3 revenue."

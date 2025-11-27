@@ -1,6 +1,6 @@
 Title: CleanSpark (CLSK) Q4 2025 Earnings Call Transcript
 Source: https://www.fool.com/earnings/call-transcripts/2025/11/25/cleanspark-clsk-q4-2025-earnings-call-transcript/
-Date: 2025-11-26
+Date: 2025-11-27
 
 Image source: The Motley Fool.
 Date
@@ -31,7 +31,7 @@ Summary
 CleanSpark
 (
 CLSK
-+2.96%
++13.79%
 )
 highlighted record financial results, significant expansion of operational scale, and a strategic evolution toward AI data center infrastructure. Management confirmed that over 1 gigawatt of power is now live under contract, while new AI-ready sites in Texas and Georgia are positioned for near-term commercialization. The company emphasized a blend of Bitcoin mining, energy infrastructure, and high-performance computing as the foundation for future revenue diversification. A $1.15 billion convertible note provided funding for both a major share buyback and investments in new facilities, while the DAM desk delivered material premium income and uplifted cash flows from Bitcoin treasury activities.
 Chief Executive Officer Shultz stated, "achieved escape velocity. Reaching 50 exahash per second in operational hash rate with 100% U.S.-based infrastructure."

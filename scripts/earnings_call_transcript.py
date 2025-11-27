@@ -15,6 +15,20 @@ openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 chroma_client = PersistentClient(path="./chroma_db")
 collection = chroma_client.get_or_create_collection(name="earning_transcripts")
 
+def get_available_companies(collection: Collection) -> List[str]:
+    """
+    Get list of unique companies in the collection.
+    """
+    # Get all unique companies from metadata
+    all_data = collection.get()
+    companies = set()
+    if all_data and 'metadatas' in all_data:
+        for metadata in all_data['metadatas']:
+            if metadata and 'company' in metadata:
+                companies.add(metadata['company'])
+    
+    return sorted(list(companies))
+
 # Phase 1: Fetch earning transcripts
 def fetch_earning_transcript() -> List[str]:
     """
@@ -30,11 +44,13 @@ def fetch_earning_transcript() -> List[str]:
     transcripts_folder = 'transcripts'
     
     for filename in os.listdir(transcripts_folder):
+        company_name = filename.split('_')[0]
         if filename.endswith('.txt'):
             file_path = os.path.join(transcripts_folder, filename)
             with open(file_path, 'r', encoding='utf-8') as file:
                 content = file.read()
-                transcripts.append(content)
+                
+                transcripts.append({'company': company_name, 'content': content, 'filename': filename})
 
     return transcripts
 
@@ -56,9 +72,12 @@ def chunk_transcripts(transcripts: List[str]) -> List[str]:
     )
     chunked_transcripts = []
     for transcript in transcripts:
-        chunks = text_splitter.split_text(transcript)
-        chunked_transcripts.extend(chunks)
-    
+        chunks = text_splitter.split_text(transcript['content'])
+        for i, chunk in enumerate(chunks):
+            chunked_transcripts.append({
+            "Company": transcript['company'],
+            "Filename": transcript['filename'], 
+            "Text": chunk})
     return chunked_transcripts
 
 # Phase 3: Vectorize and store in ChromaDB
@@ -73,21 +92,22 @@ def vectorize_transcripts(chunked_transcripts: List[str], collection: Collection
     Returns:
         None
     """
-    for i, transcript in enumerate(chunked_transcripts):
+    for i, doc in enumerate(chunked_transcripts):
         embedding = openai_client.embeddings.create(
-            input=transcript,
+            input=doc['Text'],
             model="text-embedding-3-small"
         )
         embedding = embedding.data[0].embedding
         
         collection.add(
-            documents=[transcript],
+            documents=[doc['Text']],
             embeddings=[embedding],
-            ids=[f"transcript_{i}"]
+            ids=[f"chunkid_{i}"],
+            metadatas=[{'company': doc['Company'], 'filename': doc['Filename']}]
         )
 
 # Phase 4: Query transcripts
-def query_transcripts(query: str, collection: Collection, openai_client: OpenAI, top_k: int = 5) -> List[str]:
+def query_transcripts(query: str, collection: Collection, openai_client: OpenAI, company: str= None, top_k: int = 5) -> List[str]:
     """
     Queries the earning transcripts in the ChromaDB collection.
 
@@ -108,7 +128,8 @@ def query_transcripts(query: str, collection: Collection, openai_client: OpenAI,
     
     results = collection.query(
         query_embeddings=[embedding],
-        n_results=top_k
+        n_results=top_k,
+        where={"company": {"$eq": company}} if company else None
     )
     
     return results['documents'][0]
@@ -170,12 +191,24 @@ if __name__ == "__main__":
         vectorize_transcripts(chunked_transcripts, collection, openai_client)
         # Query transcripts
     answer_context = ""
+
+    companies = set()
+    companies = get_available_companies(collection)
+    available_companies = []
+    for i, company in enumerate(companies):
+        available_companies.append({company : i})
+        print(f"[{i+1}]. {company}")
+
+    selected_company_index = int(input("Select a company by number: ")) - 1
+    selected_company_dict = available_companies[selected_company_index]
+    selected_company = list(selected_company_dict.keys())[0]
+    print(f"Selected company: {selected_company}")
     while True:
         query = input("Enter your query about earning transcripts (or 'exit' to quit): ")
         if query.lower() == 'exit':
             break
         query = f"{query}"
-        relevant_transcripts = query_transcripts(query, collection, openai_client)
+        relevant_transcripts = query_transcripts(query, collection, openai_client, selected_company)
         # Generate answers
         answer = generate_answers(query, relevant_transcripts, openai_client)
         print("\n Answer to the query:"+answer+"\n")

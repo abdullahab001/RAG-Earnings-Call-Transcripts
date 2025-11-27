@@ -1,6 +1,6 @@
 Title: Autodesk (ADSK) Q3 2026 Earnings Call Transcript
 Source: https://www.fool.com/earnings/call-transcripts/2025/11/25/autodesk-adsk-q3-2026-earnings-call-transcript/
-Date: 2025-11-26
+Date: 2025-11-27
 
 Image source: The Motley Fool.
 Date
@@ -28,7 +28,7 @@ Summary
 Management articulated that Autodesk
 (
 ADSK
-+1.58%
++2.36%
 )
 raised its full-year guidance for billings, revenue, operating margin, free cash flow, and share repurchases, highlighting underlying strength despite macroeconomic uncertainty. Executives emphasized that both revenue and billings growth benefited materially from the new transaction model and the transition to annual billings for multiyear contracts, creating tailwinds that will diminish in the next fiscal year. Strategic focus areas included acceleration of cloud-based design and make workflows, ecosystem integration for monetization, and ongoing AI feature deployment to drive user productivity and future revenue streams.
 Executive leadership confirmed no macro-driven changes in customer spending patterns, while certain sectors such as data centers and industrial saw elevated investment.
