@@ -18,7 +18,7 @@ venv/
 chroma_db/
 
 transcripts/processed/
-transcripts/
+transcripts/*.txt
 page_source.html
 page_structure.html
 test.py
