@@ -17,7 +17,8 @@ venv/
 # ChromaDB persistent storage
 chroma_db/
 
-transcripts/backup/
+transcripts/processed/
+transcripts/
 page_source.html
 page_structure.html
 test.py
