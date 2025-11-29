@@ -14,7 +14,7 @@ Ask questions like "What were the revenue drivers?" or "What risks did managemen
 
 ## How It Works
 
-1. **Load Transcripts** - Reads earnings call transcripts from local files (15 transcripts, ~750KB total)
+1. **Load Transcripts** - Reads earnings call transcripts from local files.
 
 2. **Chunk Documents** - Splits transcripts into 1000-character chunks with 200-character overlap for optimal retrieval
 
