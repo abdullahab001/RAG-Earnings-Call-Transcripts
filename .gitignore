@@ -21,4 +21,6 @@ transcripts/processed/
 transcripts/*.txt
 page_source.html
 page_structure.html
-test.py
+scripts/test.py
+scripts/feed_parser.py
+vectorization_metadata.json

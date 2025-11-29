@@ -9,9 +9,10 @@ import hashlib
 import json
 from datetime import datetime
 import sys
+import re
 
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv(dotenv_path='.env')
 
 # Initialize clients
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -237,7 +238,7 @@ def update_vector_database_incremental(folder: str = 'transcripts') -> bool:
     return False
 
 # Phase 4: Query transcripts
-def query_transcripts(query: str, collection: Collection, openai_client: OpenAI, company: str= None, top_k: int = 5) -> List[str]:
+def query_transcripts(query: str, collection: Collection, openai_client: OpenAI, company: str= None, top_k: int = 3) -> List[str]:
     """
     Queries the earning transcripts in the ChromaDB collection.
 
@@ -262,10 +263,18 @@ def query_transcripts(query: str, collection: Collection, openai_client: OpenAI,
         where={"company": {"$eq": company}} if company else None
     )
     
-    return results['documents'][0]
+    return {
+        'documents': results['documents'][0],
+        'metadatas': results['metadatas'][0]
+    }
 
 # Phase 5: Generate answers
-def generate_answers(query: str, relevant_transcripts: List[str], openai_client: OpenAI) -> str:
+def generate_answers(
+    query: str, 
+    relevant_transcripts: List[str], 
+    openai_client: OpenAI, 
+    conversation_history: List[dict] = None,
+    max_history: int = 5) -> str:
     """
     Generates answers based on the query and relevant earning transcripts.
 
@@ -273,9 +282,11 @@ def generate_answers(query: str, relevant_transcripts: List[str], openai_client:
         query (str): The query string.
         relevant_transcripts (List[str]): The relevant earning transcripts.
         openai_client (OpenAI): The OpenAI client for answer generation.
+        conversation_history (List[dict]): The conversation history for context.
     Returns:
         str: The generated answer.
     """
+
     context = "\n\n".join(relevant_transcripts)
     prompt = f"""You are a financial analyst assistant helping investors understand earnings calls.
 
@@ -288,21 +299,29 @@ IMPORTANT INSTRUCTIONS:
 - Keep the answer concise and focused on what matters to investors
 - If asked about revenue or highlights, prioritize: actual numbers, year-over-year growth, margins, and guidance
 - Use natural conversational tone, not bullet points unless specifically asked
-
+- Provide a clear answer with proper spacing.
+- Don't try to squeeze texts by removing the spaces between words.
+- If token limit for output reaches just stop the answer there.
 Context from earnings call:
 {context}
 
 Question: {query}
 
 Answer:"""
-    
+    # Build messages array
+    messages = []
+
+        # Add history properly
+    if conversation_history:
+        recent = conversation_history[-max_history:]
+        for entry in recent:
+            messages.append({"role": "user", "content": entry['question']})
+            messages.append({"role": "assistant", "content": entry['answer']})
+    messages.append({"role": "user", "content": prompt})
     response = openai_client.chat.completions.create(
         model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are a helpful financial analyst assistant who provides clear, concise insights from earnings calls. Focus on what matters to investors: numbers, growth rates, and forward guidance."},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=500,
+        messages=messages,
+        max_tokens=2000,
         temperature=0.7
     )
     
@@ -455,14 +474,18 @@ if __name__ == "__main__":
     selected_company_dict = available_companies[selected_company_index]
     selected_company = list(selected_company_dict.keys())[0]
     print(f"Selected company: {selected_company}")
-
+    conversation_history = []
+    
     while True:
         query = input("Enter your query about earning transcripts (or 'exit' to quit): ")
         if query.lower() == 'exit':
             break
-        query = f"{query}"+f"[previous context: {answer_context}]"
+        query = f"{query}"
         relevant_transcripts = query_transcripts(query, collection, openai_client, selected_company)
         # Generate answers
-        answer = generate_answers(query, relevant_transcripts, openai_client)
-        print("\n Answer to the query:"+answer+"\n")
-        answer_context += f"\n\nQ: {query}\nA: {answer}\n"
+        answer = generate_answers(query, relevant_transcripts['documents'], openai_client, conversation_history)
+        print("\n Answer:"+answer+"\n")
+        conversation_history.append({
+        'question': query,
+        'answer': answer
+            })

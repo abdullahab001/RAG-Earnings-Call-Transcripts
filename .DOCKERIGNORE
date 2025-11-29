@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+rag/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Transcripts (already in chroma_db)
+transcripts/
+
+# Documentation
+*.md
+!README.md
+
+# Scraping code (not needed in production)
+scripts/feed_parser.py
+transcripts/processed/
+transcripts/*.txt
+page_source.html
+page_structure.html
+scripts/test.py
+scripts/feed_parser.py
+
+# Large files
+*.log
